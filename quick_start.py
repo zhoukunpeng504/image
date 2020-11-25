@@ -160,7 +160,7 @@ if __name__ == '__main__':
     for i in range(39000, 40001):
         _buff.append(i)
         if len(_buff) >= 103 or _buff[-1] == 40000:
-            cmd = "firewall-cmd " + "  ".join(
+            cmd = "firewall-cmd  --permanent  " + "  ".join(
                 ['--add-forward-port=port=%s:proto=tcp:toport=%s:toaddr=10.254.253.2' %
                  (j, j) for j in _buff])
             _buff = []
