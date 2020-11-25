@@ -163,7 +163,7 @@ if __name__ == '__main__':
             cmd = "firewall-cmd " + "  ".join(
                 ['--add-forward-port=port=%s:proto=tcp:toport=%s:toaddr=10.254.253.2' %
                  (j, j) for j in _buff])
-            buff = []
+            _buff = []
             os.system(cmd)
     os.system("service firewalld reload")
     green_print("完成")
