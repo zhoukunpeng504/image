@@ -150,7 +150,24 @@ if __name__ == '__main__':
     os.system("echo 'sleep 30'>> /etc/rc.local")
     os.system("echo 'docker start %s'>> /etc/rc.local" % bt_container_id)
     green_print("fastsite/fastsite_py启动成功")
+    os.system("firewall-cmd --zone=public --add-port=80/tcp --permanent")
+    os.system("firewall-cmd --zone=public --add-port=443/tcp --permanent")
+    os.system("firewall-cmd --zone=public --add-port=21/tcp --permanent")
+    os.system("firewall-cmd --zone=public --add-port=8888/tcp --permanent")
+    os.system("firewall-cmd --zone=public --add-port=8889/tcp --permanent")
+    # 对ftp所需的端口进行转发
+    _buff = []
+    for i in range(39000, 40001):
+        _buff.append(i)
+        if len(_buff) >= 103 or _buff[-1] == 40000:
+            cmd = "firewall-cmd " + "  ".join(
+                ['--add-forward-port=port=%s:proto=tcp:toport=%s:toaddr=10.254.253.2' %
+                 (j, j) for j in _buff])
+            buff = []
+            os.system(cmd)
+    os.system("service firewalld reload")
     green_print("完成")
+    green_print("管理页面：http://%s/ , 用户名：fastsite 密码：%s" % (domain, secret))
 
 
 
