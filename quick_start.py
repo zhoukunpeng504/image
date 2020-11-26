@@ -209,7 +209,7 @@ if __name__ == '__main__':
               "-e SECRET='%s'  --network fastsite  "
               " --ip  10.254.253.3   "
               " -v /data/site_template_dir:/data/site_template_dir -v /www/wwwroot:/www/wwwroot "
-              "--sysctl net.core.somaxconn=10240  "
+              "--sysctl net.core.somaxconn=10240  -d "
               "fastsite/fastsite_py:0.3 " % (domain, secret)
               )
 
