@@ -121,7 +121,7 @@ if __name__ == '__main__':
         f.write(content)
     os.system("service docker restart")
     os.system("chkconfig docker on")
-    os.system("service firewalld start")
+    os.system("service firewalld stop")
     os.system("docker network create --subnet=10.254.253.1/24  fastsite")
     green_print("开始拉取 fastsite/bt fastsite/fastsite_py 镜像")
     os.system("docker pull fastsite/bt:0.3")
@@ -194,6 +194,7 @@ if __name__ == '__main__':
     os.system("echo 'sleep 30'>> /etc/rc.local")
     os.system("echo 'docker start %s'>> /etc/rc.local" % bt_container_id)
     time.sleep(4)
+
     for i in range(1000):
         bt = BTApi('http://127.0.0.1:8888' , 'B3g0qV1sECiJmHAK03OCWz3fHEavbwKo')
         try:
@@ -202,12 +203,13 @@ if __name__ == '__main__':
         except:
             pass
     green_print("fastsite/bt启动成功。")
+
     green_print("fastsite/fastsite_py开始启动")
-    os.system("docker run -p 8887:8887 -e NODENAME='%s' "
+    os.system("docker run -e NODENAME='%s' "
               "-e SECRET='%s'  --network fastsite  "
               " --ip  10.254.253.3   "
               " -v /data/site_template_dir:/data/site_template_dir -v /www/wwwroot:/www/wwwroot "
-              "--sysctl net.core.somaxconn=10240  -d "
+              "--sysctl net.core.somaxconn=10240  "
               "fastsite/fastsite_py:0.3 " % (domain, secret)
               )
 
@@ -216,12 +218,6 @@ if __name__ == '__main__':
     os.system("echo 'docker start %s'>> /etc/rc.local" % bt_container_id)
     green_print("fastsite/fastsite_py启动成功")
 
-    os.system("firewall-cmd --zone=public --add-port=80/tcp --permanent")
-    os.system("firewall-cmd --zone=public --add-port=443/tcp --permanent")
-    os.system("firewall-cmd --zone=public --add-port=21/tcp --permanent")
-    os.system("firewall-cmd --zone=public --add-port=8888/tcp --permanent")
-    os.system("firewall-cmd --zone=public --add-port=8889/tcp --permanent")
-    os.system("service firewalld reload")
 
     green_print("完成")
     green_print("管理页面：http://%s/ , 用户名：fastsite 密码：%s" % (domain, secret))
