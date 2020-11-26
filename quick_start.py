@@ -40,17 +40,74 @@ def yellow_print(*msg):
     print('')
 
 
+
+
+
 if __name__ == '__main__':
     os.system("yum install -y epel-release")
     os.system("yum install -y htop net-tools vim")
     os.system("yum install -y git python-setuptools")
     os.system("easy_install pip")
     os.system("pip install pip --upgrade")
-    os.system("pip install requests dns-dnspod tldextract")
+    os.system("pip install requests dns-dnspod tldextract six")
     sys.path.append("/tmp/pydnspod")
     sys.path.append("/tmp/tldextract")
     import pydnspod
     import tldextract
+    import json,hashlib
+    from six.moves.urllib import request, parse
+
+
+    class BTApi:
+        # __BT_KEY = '4vKENa5oEo8ZoNBuN7Rt6QGtlgB0Bo5i'
+        # __BT_PANEL = 'http://192.168.1.245:8888'
+
+        def __init__(self, bt_panel, bt_key):
+            # if bt_panel:
+            self.__BT_PANEL = bt_panel
+            self.__BT_KEY = bt_key
+
+        # 取面板日志
+        def get_logs(self):
+            # 拼接URL地址
+            url = self.__BT_PANEL + '/data?action=getData'
+            # 准备POST数据
+            p_data = self.__get_key_data()  # 取签名
+            p_data['table'] = 'logs'
+            p_data['limit'] = 10
+            p_data['tojs'] = 'test'
+            # 请求面板接口
+            result = self.__http_post_cookie(url, p_data)
+            # 解析JSON数据
+            return json.loads(result)
+
+        def __get_md5(self, s):
+            m = hashlib.md5()
+            m.update(s.encode('utf-8'))
+            return m.hexdigest()
+
+        # 构造带有签名的关联数组
+        def __get_key_data(self):
+            now_time = int(time.time())
+            p_data = {
+                'request_token': self.__get_md5(str(now_time) + '' + self.__get_md5(self.__BT_KEY)),
+                'request_time': now_time
+            }
+            return p_data
+
+        # 发送POST请求并保存Cookie
+        # @url 被请求的URL地址(必需)
+        # @data POST参数，可以是字符串或字典(必需)
+        # return string
+        def __http_post_cookie(self, url, p_data, timeout=20):
+            data = parse.urlencode(p_data).encode('utf-8')
+            req = request.Request(url, data)
+            opener = request.build_opener()
+            response = opener.open(req, timeout=timeout)
+            result = response.read()
+            if type(result) == bytes: result = result.decode('utf-8')
+            return result
+
     os.system("mkdir -p /data/docker")
     os.system("mkdir -p /data/site_template_dir")
     os.system("yum install -y  vim docker")
@@ -136,26 +193,36 @@ if __name__ == '__main__':
     bt_container_id = _get_cmd_stdout("docker ps |grep fastsite/bt").split()[0]
     os.system("echo 'sleep 30'>> /etc/rc.local")
     os.system("echo 'docker start %s'>> /etc/rc.local" % bt_container_id)
+    time.sleep(4)
+    for i in range(1000):
+        bt = BTApi('http://127.0.0.1:8888' , 'B3g0qV1sECiJmHAK03OCWz3fHEavbwKo')
+        try:
+            assert 'data' in bt.get_logs(),Exception('error')
+            break
+        except:
+            pass
     green_print("fastsite/bt启动成功。")
-    time.sleep(5)
     green_print("fastsite/fastsite_py开始启动")
     os.system("docker run -p 8887:8887 -e NODENAME='%s' "
               "-e SECRET='%s'  --network fastsite  "
               " --ip  10.254.253.3   "
               " -v /data/site_template_dir:/data/site_template_dir -v /www/wwwroot:/www/wwwroot "
               "--sysctl net.core.somaxconn=10240  -d "
-              "fastsite/fastsite_py:0.3 " % (domain, secret))
+              "fastsite/fastsite_py:0.3 " % (domain, secret)
+              )
 
-    bt_container_id = _get_cmd_stdout("docker ps |grep fastsite/bt").split()[0]
+    bt_container_id = _get_cmd_stdout("docker ps |grep fastsite/fastsite_py").split()[0]
     os.system("echo 'sleep 30'>> /etc/rc.local")
     os.system("echo 'docker start %s'>> /etc/rc.local" % bt_container_id)
     green_print("fastsite/fastsite_py启动成功")
+
     os.system("firewall-cmd --zone=public --add-port=80/tcp --permanent")
     os.system("firewall-cmd --zone=public --add-port=443/tcp --permanent")
     os.system("firewall-cmd --zone=public --add-port=21/tcp --permanent")
     os.system("firewall-cmd --zone=public --add-port=8888/tcp --permanent")
     os.system("firewall-cmd --zone=public --add-port=8889/tcp --permanent")
     os.system("service firewalld reload")
+
     green_print("完成")
     green_print("管理页面：http://%s/ , 用户名：fastsite 密码：%s" % (domain, secret))
 
