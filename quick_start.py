@@ -128,8 +128,8 @@ if __name__ == '__main__':
         sys.exit(-1)
     green_print("fastsite/bt开始启动...")
     os.system("mkdir -p /www/wwwroot")
-    os.system("docker run -p 8888:8888 -p 8889:8889 -p 443:443 -p 80:80 "
-              " -p 21:21  --network fastsite --ip 10.254.253.2 "
+    os.system("docker run "
+              " --network host  "
               " -v /data/site_template_dir:/data/site_template_dir -v /www/wwwroot:/www/wwwroot "
               " -d   fastsite/bt:0.3  %s" % secret)
     time.sleep(2)
@@ -155,16 +155,6 @@ if __name__ == '__main__':
     os.system("firewall-cmd --zone=public --add-port=21/tcp --permanent")
     os.system("firewall-cmd --zone=public --add-port=8888/tcp --permanent")
     os.system("firewall-cmd --zone=public --add-port=8889/tcp --permanent")
-    # 对ftp所需的端口进行转发
-    _buff = []
-    for i in range(39000, 40001):
-        _buff.append(i)
-        if len(_buff) >= 103 or _buff[-1] == 40000:
-            cmd = "firewall-cmd  --permanent  " + "  ".join(
-                ['--add-forward-port=port=%s:proto=tcp:toport=%s:toaddr=10.254.253.2' %
-                 (j, j) for j in _buff])
-            _buff = []
-            os.system(cmd)
     os.system("service firewalld reload")
     green_print("完成")
     green_print("管理页面：http://%s/ , 用户名：fastsite 密码：%s" % (domain, secret))
