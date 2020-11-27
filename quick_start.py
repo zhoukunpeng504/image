@@ -51,6 +51,8 @@ if __name__ == '__main__':
     os.system("pip install pip --upgrade")
     os.system("pip install requests dns-dnspod tldextract six")
     os.system("sysctl -w net.core.somaxconn=10240")
+    os.system("setenforce 0")
+    os.system("echo 'setenforce 0' >> /etc/rc.local ")
     os.system("echo 'sysctl -w net.core.somaxconn=10240' >>/etc/rc.local")
     sys.path.append("/tmp/pydnspod")
     sys.path.append("/tmp/tldextract")
