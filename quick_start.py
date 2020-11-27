@@ -53,7 +53,9 @@ if __name__ == '__main__':
     os.system("sysctl -w net.core.somaxconn=10240")
     os.system("setenforce 0")
     os.system("echo 'setenforce 0' >> /etc/rc.local ")
+    os.system("echo 'service firewalld stop' >> /etc/rc.local ")
     os.system("echo 'sysctl -w net.core.somaxconn=10240' >>/etc/rc.local")
+    os.system("chmod +x /etc/rc.d/rc.local")
     sys.path.append("/tmp/pydnspod")
     sys.path.append("/tmp/tldextract")
     import pydnspod
@@ -126,6 +128,8 @@ if __name__ == '__main__':
     os.system("service docker restart")
     os.system("chkconfig docker on")
     os.system("service firewalld stop")
+    os.system("chkconfig firewalld off")
+
     green_print("开始拉取 fastsite/bt fastsite/fastsite_py 镜像")
     os.system("docker pull fastsite/bt:0.3")
     os.system("docker pull fastsite/fastsite_py:0.3")
