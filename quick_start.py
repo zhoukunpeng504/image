@@ -50,6 +50,8 @@ if __name__ == '__main__':
     os.system("easy_install pip")
     os.system("pip install pip --upgrade")
     os.system("pip install requests dns-dnspod tldextract six")
+    os.system("sysctl -w net.core.somaxconn=10240")
+    os.system("echo 'sysctl -w net.core.somaxconn=10240' >>/etc/rc.local")
     sys.path.append("/tmp/pydnspod")
     sys.path.append("/tmp/tldextract")
     import pydnspod
@@ -122,7 +124,6 @@ if __name__ == '__main__':
     os.system("service docker restart")
     os.system("chkconfig docker on")
     os.system("service firewalld stop")
-    os.system("docker network create --subnet=10.254.253.1/24  fastsite")
     green_print("开始拉取 fastsite/bt fastsite/fastsite_py 镜像")
     os.system("docker pull fastsite/bt:0.3")
     os.system("docker pull fastsite/fastsite_py:0.3")
@@ -206,11 +207,9 @@ if __name__ == '__main__':
 
     green_print("fastsite/fastsite_py开始启动")
     os.system("docker run -e NODENAME='%s' "
-              "-e SECRET='%s'  --network fastsite  "
-              " --ip  10.254.253.3   "
+              "-e SECRET='%s'  --network host  "
               " -v /data/site_template_dir:/data/site_template_dir -v /www/wwwroot:/www/wwwroot "
-              "--sysctl net.core.somaxconn=10240  -d "
-              "fastsite/fastsite_py:0.3 " % (domain, secret)
+              " -d fastsite/fastsite_py:0.3 " % (domain, secret)
               )
 
     bt_container_id = _get_cmd_stdout("docker ps |grep fastsite/fastsite_py").split()[0]
