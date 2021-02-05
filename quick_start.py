@@ -46,8 +46,7 @@ def yellow_print(*msg):
 if __name__ == '__main__':
     os.system("yum install -y epel-release")
     os.system("yum install -y htop net-tools vim")
-    os.system("yum install -y git python-setuptools")
-    os.system("easy_install pip")
+    os.system("yum install -y git python-setuptools python-pip")
     os.system("pip install pip==20.3.2")
     os.system("pip install requests dns-dnspod tldextract six")
     os.system("sysctl -w net.core.somaxconn=10240")
